@@ -80,6 +80,7 @@ class RBitfield(BitfieldBase):
         self.bitfield <<= 8
         self.bitfield += ord(c)
         self.bits += 8
+        breakp = 1
     def snoopbits(self, n = 8):
         if n > self.bits:
             self.needbits(n)
@@ -148,6 +149,8 @@ class HuffmanTable:
             start, bits = finish, endbits
             if endbits == -1:
                 break
+        # for x in l:
+        #     print(x.bits, x.code, x.symbol)
         l.sort()
         self.table = l
 
@@ -161,6 +164,10 @@ class HuffmanTable:
             x.symbol = symbol
             x.reverse_symbol = reverse_bits(symbol, bits)
             #print printbits(x.symbol, bits), printbits(x.reverse_symbol, bits)
+            breakp = 1
+        # for x in self.table:
+        #     print(x)
+        breakp = 1
 
     def tables_by_bits(self):
         d = {}
@@ -446,6 +453,10 @@ def bzip2_main(input):
 
 # Sixteen bits of magic have been removed by the time we start decoding
 def gzip_main(field):
+    """
+    *1
+    """
+
     b = Bitfield(field)
     method = b.readbits(8)
     if method != 8:
@@ -479,6 +490,8 @@ def gzip_main(field):
     #print 'header 0 count 0 bits', b.tellbits()
 
     while True:
+        # *2
+
         header_start = b.tell()
         bheader_start = b.tellbits()
         print 'new block at', b.tell()
@@ -504,6 +517,7 @@ def gzip_main(field):
             main_literals, main_distances = None, None
 
             if blocktype == 1: # Static Huffman
+                # https://en.wikipedia.org/wiki/DEFLATE
                 static_huffman_bootstrap = [(0, 8), (144, 9), (256, 7), (280, 8), (288, -1)]
                 static_huffman_lengths_bootstrap = [(0, 5), (32, -1)]
                 main_literals = HuffmanTable(static_huffman_bootstrap)
@@ -564,17 +578,22 @@ def gzip_main(field):
             print 'raw data at', data_start, 'bits', b.tellbits() - bheader_start
             #print 'header 0 count 0 bits', b.tellbits() - bheader_start
 
+            #
             main_literals.populate_huffman_symbols()
             main_distances.populate_huffman_symbols()
 
             main_literals.min_max_bits()
+            main_literals.min_bits == 7
+            main_literals.max_bits == 9
             main_distances.min_max_bits()
+            main_distances.min_bits == main_distances.max_bits == 5
 
             literal_count = 0
             literal_start = 0
 
             while True:
                 lz_start = b.tellbits()
+                abort_here
                 r = main_literals.find_next_symbol(b)
                 if 0 <= r <= 255:
                     if literal_count == 0:

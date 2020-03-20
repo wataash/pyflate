@@ -1,0 +1,44 @@
+*1
+
+$ file testdata/hello.gz
+testdata/hello.gz: gzip compressed data, from Unix, original size modulo 2^32 5
+
+$ xxd testdata/hello.gz
+00000000: 1f8b 0800 0000 0000 0003 cb48 cdc9 c907  ...........H....
+00000010: 0086 a610 3605 0000 00                   ....6....
+
+hex         b.count b.bits var
+1f 8b                      magic       gzip
+08                1      0 method      DEFLATE
+00                2      0 flags       0x0 (no gzip header)
+00 00 00 00       6      0 mtime       0
+00                7      0 extra_flags 0x0
+03                8      0 os_type     0x3
+
+skip no gzip header (noop)
+b.tell()     -> at byte 8, bit 0 (header_start)
+b.tellbits() -> 64               (bheader_start)
+
+*2
+
+cb
+11001011                               b.count b.bits b.bitfield
+       ^  lastbit   1                        9      7        101
+     ^^   blocktype 1 (static huffman)       9      5         25
+
+cb:   11001011
+101:  1100101
+25:   11001
+
+tell() -> at byte 8, bit 3
+b.tellbits() -> at bit 67
+
+
+r 104
+1101000
+
+
+cb      48      cd      c9      c9      07
+110010110100100011001101110010011100100100000111
+00      86      a6      10      36      05       00       00        00
+000000001000011010100110000100000011011000000101
